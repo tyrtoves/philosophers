@@ -12,34 +12,40 @@
 
 int philosoph(int num, sem_t** semaphors, int n ) {
 	int i;
-	for(i = 0; i < 5; ++i) {
+	for(i = 0; i < 2; ++i) {
 		srand (time(NULL));
-  		struct timeval this_time;
-  		gettimeofday(&this_time, 0);
+  		struct timeval this_time, this_time_end, res;
   		
-		printf("%u,%u sec: ", this_time.tv_sec, this_time.tv_usec); 
+  		
+		//printf("%u,%u sec: ", this_time.tv_sec, this_time.tv_usec); 
 		printf("P%d thinks\n", num + 1);
 		sleep( (rand() % 2 + 1) );
 	
-		printf("%u,%u sec: ", this_time.tv_sec, this_time.tv_usec); 
+		//printf("%u,%u sec: ", this_time.tv_sec, this_time.tv_usec); 
 		printf("P%d wakes up\n", num + 1);
-		           
+		gettimeofday(&this_time, 0);           
 		while(1) {
 		
 			sem_wait(semaphors[num%n]);
 		
-		
 			if (!sem_trywait(semaphors[(num + 1)%n])) {
-			
-				//printf("P%d waited \n", num + 1);
-				printf("%u,%u sec: ", this_time.tv_sec, this_time.tv_usec); 
+				gettimeofday(&this_time_end, 0);
+				res.tv_sec= this_time_end.tv_sec -this_time.tv_sec;
+				res.tv_usec=this_time_end.tv_usec-this_time.tv_usec;
+				if(res.tv_usec < 0) {
+					res.tv_sec--;
+					res.tv_usec+=1000000;
+				}
+				//printf("%u,%u sec \n", res.tv_sec, res.tv_usec); 
+				printf("P%d waited %u,%u sec \n", num + 1, res.tv_sec, res.tv_usec);
+				//printf("%u,%u sec: ", this_time.tv_sec, this_time.tv_usec); 
 				printf("P%d eats\n", num + 1);
 				sleep((rand() % 2 + 1));
 	
 				sem_post(semaphors[num%n]);
 				sem_post(semaphors[(num + 1)%n]);
 			
-				printf("%u,%u sec: ", this_time.tv_sec, this_time.tv_usec); 
+				//printf("%u,%u sec: ", this_time.tv_sec, this_time.tv_usec); 
 				printf("P%d finished eating\n", num + 1);
 				break;
 		
